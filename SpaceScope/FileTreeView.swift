@@ -43,6 +43,11 @@ struct FileTreeView: View {
             label: {
                 Text("\(node.name) - \(formatSize(node.size))")
                     .foregroundColor(colorForSize(node.size))
+                    .contextMenu {
+                        Button("Show in Finder") {
+                            NSWorkspace.shared.activateFileViewerSelecting([node.url])
+                        }
+                    }
             }
         )
     }
