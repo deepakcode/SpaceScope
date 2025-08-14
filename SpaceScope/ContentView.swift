@@ -2,10 +2,54 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel = FileTreeViewModel()
-    @State private var filterSettings = FilterSettings() // Use the new struct
+    @State private var filterSettings = FilterSettings()
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
+            
+            // Top settings bar with primary select button + clearly labeled toggles
+            HStack(spacing: 20) {
+                Button(action: {
+                    selectFolder()
+                }) {
+                    Text("Select Folder")
+                        .fontWeight(.semibold)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 6)
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(1)
+                    
+                }
+                
+                Toggle(isOn: $filterSettings.hideSmallFiles) {
+                    Text("Hide files smaller than 10 MB")
+                }
+                .toggleStyle(SwitchToggleStyle())
+                
+                Toggle(isOn: $filterSettings.greySmallFiles) {
+                    Text("Grey out files smaller than 1 GB")
+                }
+                .toggleStyle(SwitchToggleStyle())
+                
+                Spacer()
+                
+                Toggle(isOn: $filterSettings.hideHiddenFiles) {
+                    Text("Hide hidden/system files")
+                }
+                .toggleStyle(SwitchToggleStyle())
+                
+                Spacer()
+                
+                Button("Manage Skipped Folders") {
+                    print("Skipped folders: \(viewModel.skippedFolders.map { $0.lastPathComponent }.joined(separator: ", "))")
+                }
+            }
+            .padding(10)
+            .background(Color(NSColor.windowBackgroundColor))
+            .overlay(Divider(), alignment: .bottom)
+            
+            // Main content area
             if viewModel.isLoading {
                 VStack {
                     ProgressView(viewModel.loadingMessage.isEmpty ? "Loading..." : viewModel.loadingMessage)
@@ -17,58 +61,24 @@ struct ContentView: View {
                         .lineLimit(2)
                         .padding(.bottom, 10)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let _ = viewModel.rootNode {
                 ScrollView {
                     FileTreeView(
                         viewModel: viewModel,
                         node: Binding($viewModel.rootNode)!,
                         maxSize: viewModel.rootNode?.size ?? 0,
-                        filterSettings: filterSettings // Pass the entire struct
+                        filterSettings: filterSettings
                     )
                 }
             } else {
                 Text("Select a folder to start scanning")
                     .foregroundColor(.secondary)
                     .padding()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .frame(minWidth: 800, minHeight: 600)
-        .toolbar { // Toolbar with descriptive labels
-            ToolbarItem(placement: .navigation) {
-                Button {
-                    selectFolder()
-                } label: {
-                    Label("Select Folder", systemImage: "folder")
-                }
-                .keyboardShortcut("o", modifiers: [.command]) // Optional shortcut
-                .buttonStyle(.borderedProminent) // Highlight as primary button
-            }
-            ToolbarItem(placement: .automatic) {
-                Toggle(isOn: $filterSettings.hideSmallFiles) {
-                    Label("Hide files < 10 MB", systemImage: "eye.slash")
-                }
-                .toggleStyle(SwitchToggleStyle())
-            }
-            ToolbarItem(placement: .automatic) {
-                Toggle(isOn: $filterSettings.hideHiddenFiles) {
-                    Label("Hide hidden files", systemImage: "eye.slash.fill")
-                }
-                .toggleStyle(SwitchToggleStyle())
-            }
-            ToolbarItem(placement: .automatic) {
-                Toggle(isOn: $filterSettings.greySmallFiles) {
-                    Label("Grey out files < 1 GB", systemImage: "circle.lefthalf.filled")
-                }
-                .toggleStyle(SwitchToggleStyle())
-            }
-            ToolbarItem(placement: .automatic) {
-                Button {
-                    print("Skipped folders: \(viewModel.skippedFolders.map { $0.lastPathComponent }.joined(separator: ", "))")
-                } label: {
-                    Label("Manage Skipped Folders", systemImage: "folder.badge.minus")
-                }
-            }
-        }
     }
     
     private func selectFolder() {
