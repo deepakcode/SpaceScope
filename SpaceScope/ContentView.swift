@@ -37,7 +37,7 @@ struct ContentView: View {
                 Toggle(isOn: $filterSettings.hideHiddenFiles) {
                     Text("Hide hidden/system files")
                 }
-                .toggleStyle(SwitchToggleStyle())
+                .toggleStyle(SwitchToggleStyle())//remvod skp folder
             }
             .padding(10)
             .background(Color(NSColor.windowBackgroundColor))
