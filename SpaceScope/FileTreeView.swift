@@ -4,7 +4,8 @@ struct FileTreeView: View {
     @ObservedObject var viewModel: FileTreeViewModel
     @Binding var node: FileNode
     let maxSize: UInt64
-    let hideSmallFiles: Bool // NEW: pass toggle state from ContentView
+    let hideSmallFiles: Bool
+    let hideHiddenFiles: Bool // NEW toggle
     
     var body: some View {
         DisclosureGroup(
@@ -18,9 +19,11 @@ struct FileTreeView: View {
             ),
             content: {
                 if let children = node.children {
-                    let filteredChildren = hideSmallFiles
-                        ? children.filter { $0.size >= minSizeBytes }
-                        : children
+                    let filteredChildren = children.filter { child in
+                        let passesSizeFilter = !hideSmallFiles || child.size >= minSizeBytes
+                        let passesHiddenFilter = !hideHiddenFiles || !child.name.hasPrefix(".")
+                        return passesSizeFilter && passesHiddenFilter
+                    }
                     
                     ForEach(filteredChildren.indices, id: \.self) { i in
                         FileTreeView(
@@ -34,7 +37,8 @@ struct FileTreeView: View {
                                 }
                             ),
                             maxSize: maxSize,
-                            hideSmallFiles: hideSmallFiles
+                            hideSmallFiles: hideSmallFiles,
+                            hideHiddenFiles: hideHiddenFiles
                         )
                         .padding(.leading, 20)
                     }

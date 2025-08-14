@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var viewModel = FileTreeViewModel()
     @State private var hideSmallFiles = true
+    @State private var hideHiddenFiles = false // default: show hidden files
     
     var body: some View {
         VStack {
@@ -16,14 +17,25 @@ struct ContentView: View {
                     .toggleStyle(SwitchToggleStyle())
                     .padding(.trailing, 20)
                 
+                Toggle("Hide hidden files", isOn: $hideHiddenFiles)
+                    .toggleStyle(SwitchToggleStyle())
+                    .padding(.trailing, 20)
+                
                 Spacer()
             }
             .padding(.top, 10)
             
             if viewModel.isLoading {
-                ProgressView("Loading...")
-                    .progressViewStyle(CircularProgressViewStyle())
-                    .padding()
+                VStack {
+                    ProgressView(viewModel.loadingMessage.isEmpty ? "Loading..." : viewModel.loadingMessage)
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .padding()
+                    Text(viewModel.loadingMessage)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .padding(.bottom, 10)
+                }
             }
             
             if let _ = viewModel.rootNode, !viewModel.isLoading {
@@ -32,7 +44,8 @@ struct ContentView: View {
                         viewModel: viewModel,
                         node: Binding($viewModel.rootNode)!,
                         maxSize: viewModel.rootNode?.size ?? 0,
-                        hideSmallFiles: hideSmallFiles
+                        hideSmallFiles: hideSmallFiles,
+                        hideHiddenFiles: hideHiddenFiles
                     )
                 }
             } else if !viewModel.isLoading {
