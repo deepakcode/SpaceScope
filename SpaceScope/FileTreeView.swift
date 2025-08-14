@@ -43,17 +43,6 @@ struct FileTreeView: View {
             label: {
                 Text("\(node.name) - \(formatSize(node.size))")
                     .foregroundColor(colorForSize(node.size))
-                    .contextMenu {
-                        Button(action: {
-                            if viewModel.skippedFolders.contains(node.url) {
-                                viewModel.skippedFolders.remove(node.url)
-                            } else {
-                                viewModel.skippedFolders.insert(node.url)
-                            }
-                        }) {
-                            Text(viewModel.skippedFolders.contains(node.url) ? "Unskip Folder" : "Skip Folder")
-                        }
-                    }
             }
         )
     }

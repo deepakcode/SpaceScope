@@ -38,12 +38,6 @@ struct ContentView: View {
                     Text("Hide hidden/system files")
                 }
                 .toggleStyle(SwitchToggleStyle())
-                
-                Spacer()
-                
-                Button("Manage Skipped Folders") {
-                    print("Skipped folders: \(viewModel.skippedFolders.map { $0.lastPathComponent }.joined(separator: ", "))")
-                }
             }
             .padding(10)
             .background(Color(NSColor.windowBackgroundColor))
