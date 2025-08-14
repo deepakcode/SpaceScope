@@ -10,9 +10,23 @@
 		2BD0DE482E4E056000A90417 /* SpaceScope.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpaceScope.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		2BD0DEBB2E4E4E4700A90417 /* Exceptions for "SpaceScope" folder in "SpaceScope" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Untitled 2.swift",
+				Untitled.swift,
+			);
+			target = 2BD0DE472E4E056000A90417 /* SpaceScope */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2BD0DE4A2E4E056000A90417 /* SpaceScope */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				2BD0DEBB2E4E4E4700A90417 /* Exceptions for "SpaceScope" folder in "SpaceScope" target */,
+			);
 			path = SpaceScope;
 			sourceTree = "<group>";
 		};
