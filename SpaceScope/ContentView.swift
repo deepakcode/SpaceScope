@@ -3,7 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var viewModel = FileTreeViewModel()
     @State private var filterSettings = FilterSettings() // Use the new struct
-    @State private var searchText: String = "" // New state for search
     
     var body: some View {
         VStack {
@@ -24,8 +23,7 @@ struct ContentView: View {
                         viewModel: viewModel,
                         node: Binding($viewModel.rootNode)!,
                         maxSize: viewModel.rootNode?.size ?? 0,
-                        filterSettings: filterSettings, // Pass the entire struct
-                        searchText: searchText // Pass search text
+                        filterSettings: filterSettings // Pass the entire struct
                     )
                 }
             } else {
@@ -35,33 +33,39 @@ struct ContentView: View {
             }
         }
         .frame(minWidth: 800, minHeight: 600)
-        .toolbar { // Using the toolbar modifier for better organization
+        .toolbar { // Toolbar with descriptive labels
             ToolbarItem(placement: .navigation) {
-                Button("Select Folder") {
+                Button {
                     selectFolder()
+                } label: {
+                    Label("Select Folder", systemImage: "folder")
                 }
-            }
-            ToolbarItem(placement: .navigation) {
-                TextField("Search", text: $searchText, prompt: Text("Search"))
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .frame(width: 200)
+                .keyboardShortcut("o", modifiers: [.command]) // Optional shortcut
+                .buttonStyle(.borderedProminent) // Highlight as primary button
             }
             ToolbarItem(placement: .automatic) {
-                Toggle("Hide files < 10 MB", isOn: $filterSettings.hideSmallFiles)
-                    .toggleStyle(SwitchToggleStyle())
+                Toggle(isOn: $filterSettings.hideSmallFiles) {
+                    Label("Hide files < 10 MB", systemImage: "eye.slash")
+                }
+                .toggleStyle(SwitchToggleStyle())
             }
             ToolbarItem(placement: .automatic) {
-                Toggle("Hide hidden files", isOn: $filterSettings.hideHiddenFiles)
-                    .toggleStyle(SwitchToggleStyle())
+                Toggle(isOn: $filterSettings.hideHiddenFiles) {
+                    Label("Hide hidden files", systemImage: "eye.slash.fill")
+                }
+                .toggleStyle(SwitchToggleStyle())
             }
             ToolbarItem(placement: .automatic) {
-                Toggle("Grey out files < 1 GB", isOn: $filterSettings.greySmallFiles)
-                    .toggleStyle(SwitchToggleStyle())
+                Toggle(isOn: $filterSettings.greySmallFiles) {
+                    Label("Grey out files < 1 GB", systemImage: "circle.lefthalf.filled")
+                }
+                .toggleStyle(SwitchToggleStyle())
             }
             ToolbarItem(placement: .automatic) {
-                Button("Manage Skipped Folders") {
-                    // For now, print to console. In a real app, this would open a management sheet/window.
+                Button {
                     print("Skipped folders: \(viewModel.skippedFolders.map { $0.lastPathComponent }.joined(separator: ", "))")
+                } label: {
+                    Label("Manage Skipped Folders", systemImage: "folder.badge.minus")
                 }
             }
         }

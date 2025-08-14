@@ -5,7 +5,6 @@ struct FileTreeView: View {
     @Binding var node: FileNode
     let maxSize: UInt64
     let filterSettings: FilterSettings // Consolidated filters
-    let searchText: String // New property for search text
     
     var body: some View {
         DisclosureGroup(
@@ -19,30 +18,25 @@ struct FileTreeView: View {
             ),
             content: {
                 if let children = node.children {
-                    let filteredChildren = children.filter { child in
+                    ForEach(children.indices, id: \.self) { i in
+                        let child = children[i]
                         let passesSizeFilter = !filterSettings.hideSmallFiles || child.size >= minSizeBytes
                         let passesHiddenFilter = !filterSettings.hideHiddenFiles || !child.name.hasPrefix(".")
-                        let passesSearchFilter = searchText.isEmpty || child.name.localizedCaseInsensitiveContains(searchText)
                         
-                        return passesSizeFilter && passesHiddenFilter && passesSearchFilter
-                    }
-                    
-                    ForEach(filteredChildren.indices, id: \.self) { i in
-                        FileTreeView(
-                            viewModel: viewModel,
-                            node: Binding(
-                                get: { filteredChildren[i] },
-                                set: { newValue in
-                                    if let index = node.children?.firstIndex(where: { $0.id == filteredChildren[i].id }) {
-                                        node.children?[index] = newValue
+                        if passesSizeFilter && passesHiddenFilter {
+                            FileTreeView(
+                                viewModel: viewModel,
+                                node: Binding(
+                                    get: { node.children![i] },
+                                    set: { newValue in
+                                        node.children![i] = newValue
                                     }
-                                }
-                            ),
-                            maxSize: maxSize,
-                            filterSettings: filterSettings,
-                            searchText: searchText
-                        )
-                        .padding(.leading, 20)
+                                ),
+                                maxSize: maxSize,
+                                filterSettings: filterSettings
+                            )
+                            .padding(.leading, 20)
+                        }
                     }
                 }
             },
