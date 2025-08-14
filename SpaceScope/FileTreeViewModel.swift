@@ -5,6 +5,7 @@ class FileTreeViewModel: ObservableObject {
     @Published var rootNode: FileNode?
     @Published var isLoading: Bool = false
     @Published var loadingMessage: String = ""
+    @Published var skippedFolders: Set<URL> = [] // New property for skipped folders
     
     func scanDirectory(at url: URL) {
         DispatchQueue.main.async {
@@ -40,6 +41,10 @@ class FileTreeViewModel: ObservableObject {
                 options: [] // ✅ No .skipsHiddenFiles → include hidden files
             ) {
                 for item in contents {
+                    if self.skippedFolders.contains(item) { // Skip this item if it's in skippedFolders
+                        continue
+                    }
+                    
                     let isDirectory = (try? item.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory ?? false
                     if isDirectory {
                         let size = self.calculateFolderSize(url: item, progressPath: item.path)
@@ -61,6 +66,10 @@ class FileTreeViewModel: ObservableObject {
     }
     
     private func calculateFolderSize(url: URL, progressPath: String) -> UInt64 {
+        if skippedFolders.contains(url) { // Check if folder is skipped
+            return 0
+        }
+        
         var total: UInt64 = 0
         if let enumerator = FileManager.default.enumerator(
             at: url,
@@ -71,6 +80,13 @@ class FileTreeViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.loadingMessage = "Scanning: \(progressPath)"
                 }
+                
+                // Check for skipped sub-folders during enumeration as well
+                if fileURL.hasDirectoryPath && skippedFolders.contains(fileURL) {
+                    enumerator.skipDescendants() // Skip this directory's contents
+                    continue
+                }
+                
                 if let fileSize = (try? fileURL.resourceValues(forKeys: [.fileSizeKey]))?.fileSize {
                     total += UInt64(fileSize)
                 }

@@ -4,8 +4,8 @@ struct FileTreeView: View {
     @ObservedObject var viewModel: FileTreeViewModel
     @Binding var node: FileNode
     let maxSize: UInt64
-    let hideSmallFiles: Bool
-    let hideHiddenFiles: Bool // NEW toggle
+    let filterSettings: FilterSettings // Consolidated filters
+    let searchText: String // New property for search text
     
     var body: some View {
         DisclosureGroup(
@@ -20,9 +20,11 @@ struct FileTreeView: View {
             content: {
                 if let children = node.children {
                     let filteredChildren = children.filter { child in
-                        let passesSizeFilter = !hideSmallFiles || child.size >= minSizeBytes
-                        let passesHiddenFilter = !hideHiddenFiles || !child.name.hasPrefix(".")
-                        return passesSizeFilter && passesHiddenFilter
+                        let passesSizeFilter = !filterSettings.hideSmallFiles || child.size >= minSizeBytes
+                        let passesHiddenFilter = !filterSettings.hideHiddenFiles || !child.name.hasPrefix(".")
+                        let passesSearchFilter = searchText.isEmpty || child.name.localizedCaseInsensitiveContains(searchText)
+                        
+                        return passesSizeFilter && passesHiddenFilter && passesSearchFilter
                     }
                     
                     ForEach(filteredChildren.indices, id: \.self) { i in
@@ -37,8 +39,8 @@ struct FileTreeView: View {
                                 }
                             ),
                             maxSize: maxSize,
-                            hideSmallFiles: hideSmallFiles,
-                            hideHiddenFiles: hideHiddenFiles
+                            filterSettings: filterSettings,
+                            searchText: searchText
                         )
                         .padding(.leading, 20)
                     }
@@ -47,11 +49,23 @@ struct FileTreeView: View {
             label: {
                 Text("\(node.name) - \(formatSize(node.size))")
                     .foregroundColor(colorForSize(node.size))
+                    .contextMenu {
+                        Button(action: {
+                            if viewModel.skippedFolders.contains(node.url) {
+                                viewModel.skippedFolders.remove(node.url)
+                            } else {
+                                viewModel.skippedFolders.insert(node.url)
+                            }
+                        }) {
+                            Text(viewModel.skippedFolders.contains(node.url) ? "Unskip Folder" : "Skip Folder")
+                        }
+                    }
             }
         )
     }
     
     private let minSizeBytes: UInt64 = 10 * 1024 * 1024 // 10MB
+    private let oneGB: UInt64 = 1 * 1024 * 1024 * 1024 // 1GB for greying out
     
     private func formatSize(_ size: UInt64) -> String {
         let formatter = ByteCountFormatter()
@@ -61,8 +75,7 @@ struct FileTreeView: View {
     }
     
     private func colorForSize(_ size: UInt64) -> Color {
-        let oneGB: UInt64 = 1 * 1024 * 1024 * 1024
-        if size < oneGB {
+        if filterSettings.greySmallFiles && size < oneGB {
             return Color.gray.opacity(0.6)
         }
         let ratio = Double(size) / Double(maxSize)
